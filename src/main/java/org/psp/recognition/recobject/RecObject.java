@@ -65,7 +65,7 @@ public abstract class RecObject {
         LOG.debug("source = {}", source);
 
         if (sourceType == null || source == null) {
-            throw new IllegalStateException("Both values of sourceType and source are necessary: " + sourceType);
+            throw new IllegalStateException("Both values of sourceType and source are necessary");
         }
 
         switch (sourceType) {
