@@ -22,6 +22,10 @@ public class FaceDetection extends RecObject {
         LOG.debug("getResources Start");
 
         ArrayList<String> faceResources = new ArrayList<>();
+        faceResources.add(new File("src\\main\\resources\\lbpcascades\\lbpcascade_frontalface.xml").getAbsolutePath());
+        faceResources.add(new File("src\\main\\resources\\lbpcascades\\lbpcascade_frontalface_improved.xml").getAbsolutePath());
+        faceResources.add(new File("src\\main\\resources\\lbpcascades\\lbpcascade_profileface.xml").getAbsolutePath());
+//        faceResources.add(new File("src\\main\\resources\\lbpcascades\\lbpcascade_silverware.xml").getAbsolutePath());
         faceResources.add(new File("src\\main\\resources\\haarcascades\\haarcascade_frontalcatface.xml").getAbsolutePath());
         faceResources.add(new File("src\\main\\resources\\haarcascades\\haarcascade_frontalcatface_extended.xml").getAbsolutePath());
         faceResources.add(new File("src\\main\\resources\\haarcascades\\haarcascade_frontalface_alt.xml").getAbsolutePath());
