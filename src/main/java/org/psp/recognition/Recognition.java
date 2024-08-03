@@ -24,7 +24,8 @@ public class Recognition {
 //            LOG.debug("success");
 //        }
 
-        FaceDetection faceDetection = new FaceDetection("C:\\PSP\\Photos\\Feta.jpg");
+//        FaceDetection faceDetection = new FaceDetection("C:\\PSP\\Photos\\Feta.jpg");
+        FaceDetection faceDetection = new FaceDetection("C:\\PSP\\Photos\\WhatsApp Image 2022-01-29 at 21.14.11.jpeg");
         if (faceDetection.isRecognized()) {
             LOG.debug("Recognized");
         } else {

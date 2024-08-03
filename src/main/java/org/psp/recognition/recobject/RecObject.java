@@ -1,5 +1,6 @@
 package org.psp.recognition.recobject;
 
+import org.psp.tools.Timing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.swing.*;
@@ -73,6 +74,8 @@ public abstract class RecObject {
         LOG.debug("sourceType = {}", sourceType);
         LOG.debug("source = {}", source);
 
+        Timing timing = new Timing();
+
         if (sourceType == null || source == null) {
             throw new IllegalStateException("Both values of sourceType and source are necessary");
         }
@@ -110,7 +113,10 @@ public abstract class RecObject {
                     frame.getContentPane().add(label);
                     frame.pack();
                     frame.setVisible(true);
+                    timing.setEnd();
+                    LOG.info(source + ", time of recognition: {}", timing.getBetween());
                 } else {
+                    LOG.debug(source + " is not recognized");
                     return false;
                 }
                 break;
