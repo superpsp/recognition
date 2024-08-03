@@ -110,8 +110,10 @@ public abstract class RecObject {
                     frame.getContentPane().add(label);
                     frame.pack();
                     frame.setVisible(true);
-                    break;
+                } else {
+                    return false;
                 }
+                break;
             case VIDEO:
                 break;
             case CAMERA:

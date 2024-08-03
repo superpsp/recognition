@@ -26,7 +26,9 @@ public class Recognition {
 
         FaceDetection faceDetection = new FaceDetection("C:\\PSP\\Photos\\Feta.jpg");
         if (faceDetection.isRecognized()) {
-            LOG.debug("Success");
+            LOG.debug("Recognized");
+        } else {
+            LOG.info("Not recognized");
         }
 
         LOG.debug("Recognition end");
