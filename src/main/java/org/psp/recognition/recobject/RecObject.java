@@ -2,11 +2,12 @@ package org.psp.recognition.recobject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.imgcodecs.Imgcodecs;
-
 import javax.swing.*;
+import java.util.ArrayList;
+import org.opencv.core.*;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.imgcodecs.Imgcodecs;
 
 public abstract class RecObject {
     final static Logger LOG = LoggerFactory.getLogger(RecObject.class.getName());
@@ -26,6 +27,7 @@ public abstract class RecObject {
     private String source;
     private DestinationType destinationType;
     private String destination;
+    private ArrayList<String> resources;
 
     public SourceType getSourceType() {
         return sourceType;
@@ -59,6 +61,13 @@ public abstract class RecObject {
         this.destination = destination;
     }
 
+    public ArrayList<String> getResources() {
+        return resources;
+    }
+    protected void setResources(ArrayList<String> resources) {
+        this.resources = resources;
+    }
+
     public boolean isRecognized() {
         LOG.debug("isRecognized Start");
         LOG.debug("sourceType = {}", sourceType);
@@ -75,17 +84,34 @@ public abstract class RecObject {
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 LOG.debug("JFrame prepared");
 
-                Mat mat = Imgcodecs.imread(source);
-                MatOfByte buf = new MatOfByte();
-                Imgcodecs.imencode(".jpg", mat, buf);
-                LOG.debug("Image prepared");
+                Mat tempMat = new Mat();
 
-                ImageIcon imageIcon = new ImageIcon(buf.toArray());
-                label.setIcon(imageIcon);
-                frame.getContentPane().add(label);
-                frame.pack();
-                frame.setVisible(true);
-                break;
+                Mat mat = Imgcodecs.imread(source);
+                CascadeClassifier cascadeClassifier;
+                MatOfRect matOfRect = null;
+                for (String resource : resources) {
+                    LOG.debug("resource = {}", resource);
+                    cascadeClassifier = new CascadeClassifier(resource);
+                    matOfRect = new MatOfRect();
+                    cascadeClassifier.detectMultiScale(mat, matOfRect);
+                    LOG.debug("Recognized {} faces", matOfRect.toArray().length);
+                    if (matOfRect.toArray().length > 0) break;
+                }
+                if (matOfRect.toArray().length > 0) {
+                    MatOfByte buf = new MatOfByte();
+                    for (Rect rect : matOfRect.toArray()) {
+                        Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
+                    }
+                    Imgcodecs.imencode(".jpg", mat, buf);
+                    LOG.debug("Image prepared");
+
+                    ImageIcon imageIcon = new ImageIcon(buf.toArray());
+                    label.setIcon(imageIcon);
+                    frame.getContentPane().add(label);
+                    frame.pack();
+                    frame.setVisible(true);
+                    break;
+                }
             case VIDEO:
                 break;
             case CAMERA:
