@@ -8,7 +8,7 @@ public class TestRecObject extends RecObject {
 
     public TestRecObject() {
         LOG.debug("TestRecObject Start");
-        setSourceType(SourceType.FILE);
+//        setSourceType("file");
         LOG.debug("TestRecObject End");
     }
 }
