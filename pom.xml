@@ -16,6 +16,9 @@
 		<opencv.version>4.10.0</opencv.version>
 		<assembly.plugin.version>3.7.1</assembly.plugin.version>
 		<maven-antrun-plugin.version>3.0.0</maven-antrun-plugin.version>
+		<commons-io.version>2.16.1</commons-io.version>
+		<zip4j.version>2.11.5</zip4j.version>
+		<ini4j.version>0.5.4</ini4j.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -38,10 +41,27 @@
 			<artifactId>opencv</artifactId>
 			<version>${opencv.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.lingala.zip4j</groupId>
+			<artifactId>zip4j</artifactId>
+			<version>${zip4j.version}</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.ini4j</groupId>
+			<artifactId>ini4j</artifactId>
+			<version>${ini4j.version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>${assembly.plugin.version}</version>
 				<configuration>

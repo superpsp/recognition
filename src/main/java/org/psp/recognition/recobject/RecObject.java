@@ -1,75 +1,67 @@
 package org.psp.recognition.recobject;
 
+import org.psp.recognition.AppProperties;
 import org.psp.tools.Timing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.swing.*;
+import java.io.File;
 import java.util.ArrayList;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.psp.recognition.fs.FSDirectory;
+import org.psp.recognition.fs.FSFile;
 
-public abstract class RecObject {
+public class RecObject {
     final static Logger LOG = LoggerFactory.getLogger(RecObject.class.getName());
+    protected FSFile source;
 
-    public enum SourceType {
-        FILE
-        , VIDEO
-        , CAMERA
-    }
+    protected String sourceType;
+    protected String destinationType;
+    protected FSFile destination;
+    protected ArrayList<FSFile> resources;
 
-    public enum DestinationType {
-        FILE
-        , SCREEN
-    }
-
-    private SourceType sourceType;
-    private String source;
-    private DestinationType destinationType;
-    private String destination;
-    private ArrayList<String> resources;
-
-    public SourceType getSourceType() {
-        return sourceType;
-    }
-
-    protected void setSourceType(SourceType sourceType) {
-        this.sourceType = sourceType;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    protected void setSource(String source) {
-        this.source = source;
-    }
-
-    public DestinationType getDestinationType() {
+    protected String getDestinationType() {
         return destinationType;
     }
 
-    protected void setDestinationType(DestinationType destinationType) {
+    protected void setResources(String nameMask) {
+        LOG.debug("setResources nameMask = {}", nameMask);
+
+        String pathName = System.getProperty("user.dir")
+                + File.separator + AppProperties.properties.get("directory").get("resource");
+        LOG.debug("pathName = {}", pathName);
+        FSDirectory resourceDirectory = new FSDirectory(pathName, nameMask, "xml", 1);
+        resourceDirectory.iterate();
+    }
+
+    protected void setDestinationType(String destinationType) {
         this.destinationType = destinationType;
     }
 
-    public String getDestination() {
-        return destination;
+    protected void setSourceType(String sourceType) {
+        LOG.debug("sourceType = {}", sourceType);
+        this.sourceType = sourceType;
     }
 
-    protected void setDestination(String destination) {
-        this.destination = destination;
+    protected void setSource(FSFile source) {
+        LOG.debug("source = {}", source);
+        this.source = source;
+        if (source instanceof FSFile)
+            setSourceType("file");
     }
 
-    public ArrayList<String> getResources() {
+    public void addResource(FSFile fsFile) {
+        resources.add(fsFile);
+    }
+
+    public ArrayList<FSFile> getResources() {
         return resources;
     }
-    protected void setResources(ArrayList<String> resources) {
-        this.resources = resources;
-    }
 
-    public boolean isRecognized() {
+   public boolean isRecognized() {
         LOG.debug("isRecognized Start");
         LOG.debug("sourceType = {}", sourceType);
         LOG.debug("source = {}", source);
@@ -81,7 +73,7 @@ public abstract class RecObject {
         }
 
         switch (sourceType) {
-            case FILE:
+            case "file":
                 JFrame frame = new JFrame("Image");
                 JLabel label = new JLabel();
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -89,23 +81,23 @@ public abstract class RecObject {
 
                 Mat tempMat = new Mat();
 
-                Mat mat = Imgcodecs.imread(source);
+                Mat mat = Imgcodecs.imread(source.getPath());
                 CascadeClassifier cascadeClassifier;
                 MatOfRect matOfRect = null;
-                for (String resource : resources) {
+                for (FSFile resource : resources) {
                     LOG.debug("resource = {}", resource);
-                    cascadeClassifier = new CascadeClassifier(resource);
+                    cascadeClassifier = new CascadeClassifier(resource.getAbsolutePath());
                     matOfRect = new MatOfRect();
                     cascadeClassifier.detectMultiScale(mat, matOfRect);
                     LOG.debug("Recognized {} faces", matOfRect.toArray().length);
-                    if (matOfRect.toArray().length > 0) break;
+                    if (matOfRect != null && matOfRect.toArray().length > 0) break;
                 }
-                if (matOfRect.toArray().length > 0) {
+                if (matOfRect != null && matOfRect.toArray().length > 0) {
                     MatOfByte buf = new MatOfByte();
                     for (Rect rect : matOfRect.toArray()) {
                         Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
                     }
-                    Imgcodecs.imencode(".jpg", mat, buf);
+                    Imgcodecs.imencode("." + source.getExtension(), mat, buf);
                     LOG.debug("Image prepared");
 
                     ImageIcon imageIcon = new ImageIcon(buf.toArray());
@@ -113,16 +105,16 @@ public abstract class RecObject {
                     frame.getContentPane().add(label);
                     frame.pack();
                     frame.setVisible(true);
-                    timing.setEnd();
-                    LOG.info(source + ", time of recognition: {}", timing.getBetween());
                 } else {
                     LOG.debug(source + " is not recognized");
                     return false;
                 }
+                timing.setEnd();
+                LOG.info(source + ", time of recognition: {}", timing.getBetween());
                 break;
-            case VIDEO:
+            case "video":
                 break;
-            case CAMERA:
+            case "camera":
                 break;
             default:
                 throw new IllegalStateException("Unexpected value of sourceType: " + sourceType);
