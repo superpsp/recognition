@@ -16,7 +16,6 @@ public class FSResourceFile extends FSFile {
         LOG.debug("FSResourceFile = {}", this.getPath());
         FaceDetection faceDetection = FaceDetection.getInstance();
         faceDetection.addResource(this);
-        LOG.debug("resources = {}", faceDetection.getResources());
         return true;
     }
 }

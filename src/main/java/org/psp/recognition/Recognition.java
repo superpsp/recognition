@@ -1,6 +1,7 @@
 package org.psp.recognition;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -34,11 +35,13 @@ public class Recognition {
 //            LOG.info("Not recognized");
 //        }
 
-        FSDirectory currentDirectory = new FSDirectory(System.getProperty("user.dir"), null, "ini", 0);
+        ArrayList<String> iniPatterns = new ArrayList<>();
+        iniPatterns.add("recognition.ini");
+        FSDirectory currentDirectory = new FSDirectory(System.getProperty("user.dir"), iniPatterns, false);
         LOG.debug("currentDirectory = {}", currentDirectory);
         currentDirectory.iterate();
 
-        FSDirectory workDirectory = new FSDirectory(AppProperties.properties.get("directory").get("work"), null, null, 1);
+        FSDirectory workDirectory = new FSDirectory(false, AppProperties.properties.get("directory").get("work"));
         LOG.debug("workDirectory = {}", workDirectory);
         workDirectory.iterate();
 

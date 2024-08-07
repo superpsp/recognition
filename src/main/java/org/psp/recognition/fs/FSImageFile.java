@@ -14,8 +14,8 @@ public class FSImageFile extends FSFile {
     @Override
     public boolean run() {
         FaceDetection faceDetection = FaceDetection.getInstance();
-        faceDetection.setSource(this);
         faceDetection.initFaceDetection();
+        faceDetection.setSource(this);
         if (faceDetection.isRecognized()) {
             return true;
         } else {

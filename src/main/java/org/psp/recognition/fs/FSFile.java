@@ -18,7 +18,7 @@ public class FSFile extends FSDirectory {
         LOG.debug("{} running", this.getPath());
 
         String extension = getExtension();
-        LOG.debug("extension = {}", extension);
+        if (this.isFile()) LOG.debug("extension = {}", extension);
         if (extension != null && !extension.isEmpty()) {
             switch (extension.toLowerCase()) {
                 case "zip":

@@ -21,20 +21,22 @@ public class RecObject {
     protected String sourceType;
     protected String destinationType;
     protected FSFile destination;
-    protected ArrayList<FSFile> resources;
+    protected ArrayList<FSFile> resourceFiles = new ArrayList<>();
 
     protected String getDestinationType() {
         return destinationType;
     }
 
-    protected void setResources(String nameMask) {
-        LOG.debug("setResources nameMask = {}", nameMask);
+    protected void setResources(ArrayList<String> fresourcePatterns) {
+        LOG.debug("fresourcePatterns = {}", fresourcePatterns);
 
         String pathName = System.getProperty("user.dir")
                 + File.separator + AppProperties.properties.get("directory").get("resource");
         LOG.debug("pathName = {}", pathName);
-        FSDirectory resourceDirectory = new FSDirectory(pathName, nameMask, "xml", 1);
+        FSDirectory resourceDirectory = new FSDirectory(pathName, fresourcePatterns, true);
         resourceDirectory.iterate();
+
+        LOG.debug("resourceFiles = {}", resourceFiles);
     }
 
     protected void setDestinationType(String destinationType) {
@@ -53,12 +55,13 @@ public class RecObject {
             setSourceType("file");
     }
 
-    public void addResource(FSFile fsFile) {
-        resources.add(fsFile);
+    protected void addResource(FSFile fsFile) {
+        LOG.debug("fsFile = {}", fsFile);
+        resourceFiles.add(fsFile);
     }
 
     public ArrayList<FSFile> getResources() {
-        return resources;
+        return resourceFiles;
     }
 
    public boolean isRecognized() {
@@ -84,7 +87,7 @@ public class RecObject {
                 Mat mat = Imgcodecs.imread(source.getPath());
                 CascadeClassifier cascadeClassifier;
                 MatOfRect matOfRect = null;
-                for (FSFile resource : resources) {
+                for (FSFile resource : resourceFiles) {
                     LOG.debug("resource = {}", resource);
                     cascadeClassifier = new CascadeClassifier(resource.getAbsolutePath());
                     matOfRect = new MatOfRect();
