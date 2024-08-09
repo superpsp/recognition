@@ -25,8 +25,8 @@ public class FSPropertiesFile extends FSFile{
             throw new RuntimeException(e);
         }
 
-        AppProperties.properties = ini.entrySet().stream().collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-        LOG.debug("properties = {}", AppProperties.properties);
+        AppProperties.getInstance().setProperties(ini.entrySet().stream().collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        LOG.debug("properties = {}", AppProperties.getInstance().getProperties());
         return true;
     }
 }

@@ -17,7 +17,6 @@ import org.psp.recognition.fs.FSFile;
 public class RecObject {
     final static Logger LOG = LoggerFactory.getLogger(RecObject.class.getName());
     protected FSFile source;
-
     protected String sourceType;
     protected String destinationType;
     protected FSFile destination;
@@ -27,11 +26,15 @@ public class RecObject {
         return destinationType;
     }
 
+    public void setDestination(FSFile destination) {
+        this.destination = destination;
+    }
+
     protected void setResources(ArrayList<String> fresourcePatterns) {
         LOG.debug("fresourcePatterns = {}", fresourcePatterns);
 
         String pathName = System.getProperty("user.dir")
-                + File.separator + AppProperties.properties.get("directory").get("resource");
+                + File.separator + AppProperties.getInstance().getProperties().get("directory").get("resource");
         LOG.debug("pathName = {}", pathName);
         FSDirectory resourceDirectory = new FSDirectory(pathName, fresourcePatterns, true);
         resourceDirectory.iterate();
@@ -77,11 +80,7 @@ public class RecObject {
 
         switch (sourceType) {
             case "file":
-                JFrame frame = new JFrame("Image");
-                JLabel label = new JLabel();
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                LOG.debug("JFrame prepared");
-
+                LOG.info("File: {}", source);
                 Mat tempMat = new Mat();
 
                 Mat mat = Imgcodecs.imread(source.getPath());
@@ -91,29 +90,50 @@ public class RecObject {
                     LOG.debug("resource = {}", resource);
                     cascadeClassifier = new CascadeClassifier(resource.getAbsolutePath());
                     matOfRect = new MatOfRect();
-                    cascadeClassifier.detectMultiScale(mat, matOfRect);
-                    LOG.debug("Recognized {} faces", matOfRect.toArray().length);
+                    try {
+                        cascadeClassifier.detectMultiScale(mat, matOfRect);
+                    } catch (CvException e) {
+                        LOG.error(e.toString());
+                    }
+                    LOG.info("Recognized {} faces", matOfRect.toArray().length);
                     if (matOfRect != null && matOfRect.toArray().length > 0) break;
+                    LOG.info("Used: ", resource.getPath());
                 }
                 if (matOfRect != null && matOfRect.toArray().length > 0) {
-                    MatOfByte buf = new MatOfByte();
                     for (Rect rect : matOfRect.toArray()) {
                         Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
                     }
-                    Imgcodecs.imencode("." + source.getExtension(), mat, buf);
-                    LOG.debug("Image prepared");
+                    LOG.debug("Image {}", source);
 
-                    ImageIcon imageIcon = new ImageIcon(buf.toArray());
-                    label.setIcon(imageIcon);
-                    frame.getContentPane().add(label);
-                    frame.pack();
-                    frame.setVisible(true);
+                    LOG.debug("destinationType = {}", destinationType);
+                    switch (destinationType) {
+                        case "file":
+                            LOG.debug("Write to {}", destination.getPath() + File.separator + source.getName());
+                            Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
+                            break;
+                        case "screen":
+                            MatOfByte matOfByte = new MatOfByte();
+                            Imgcodecs.imencode("." + source.getExtension(), mat, matOfByte);
+                            ImageIcon imageIcon = new ImageIcon(matOfByte.toArray());
+                            LOG.debug("Image prepared");
+
+                            JFrame frame = new JFrame("Image");
+                            JLabel label = new JLabel();
+                            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                            label.setIcon(imageIcon);
+                            frame.getContentPane().add(label);
+                            frame.pack();
+                            frame.setVisible(true);
+                            break;
+                        default:
+                            throw new IllegalStateException("Unexpected value: " + destinationType);
+                    }
                 } else {
                     LOG.debug(source + " is not recognized");
                     return false;
                 }
                 timing.setEnd();
-                LOG.info(source + ", time of recognition: {}", timing.getBetween());
+                LOG.info("Time of recognition: {}", timing.getBetween());
                 break;
             case "video":
                 break;

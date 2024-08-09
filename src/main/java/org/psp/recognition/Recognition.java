@@ -1,12 +1,7 @@
 package org.psp.recognition;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.log4j.PropertyConfigurator;
 import org.opencv.core.Core;
 import org.psp.recognition.fs.FSDirectory;
 
@@ -14,10 +9,10 @@ public class Recognition {
     private final static Logger LOG = LoggerFactory.getLogger(Recognition.class.getName());
 
     public static void main(String[] args) {
-        AppProperties appProperties = new AppProperties();
+        AppProperties.getInstance().init();
 
-        PropertyConfigurator.configure(appProperties.LOG_CONFIG_FILE);
-        
+//        PropertyConfigurator.configure(appProperties.getLogConfigFfile());
+
         LOG.debug("Recognition start");
 
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -35,13 +30,7 @@ public class Recognition {
 //            LOG.info("Not recognized");
 //        }
 
-        ArrayList<String> iniPatterns = new ArrayList<>();
-        iniPatterns.add("recognition.ini");
-        FSDirectory currentDirectory = new FSDirectory(System.getProperty("user.dir"), iniPatterns, false);
-        LOG.debug("currentDirectory = {}", currentDirectory);
-        currentDirectory.iterate();
-
-        FSDirectory workDirectory = new FSDirectory(false, AppProperties.properties.get("directory").get("work"));
+        FSDirectory workDirectory = new FSDirectory(true, AppProperties.getInstance().getProperties().get("directory").get("work"));
         LOG.debug("workDirectory = {}", workDirectory);
         workDirectory.iterate();
 
