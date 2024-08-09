@@ -1,8 +1,8 @@
 package org.psp.recognition.fs;
 
+import org.psp.recognition.AppProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.ArrayList;
 
@@ -39,7 +39,8 @@ public class FSDirectory extends AbstractFSObject {
             for (File fsItem : fileList) {
                 LOG.debug("fsItem = {}", fsItem);
 
-                if (fsItem.isDirectory() && withSubdirectories) {
+                if (fsItem.isDirectory() && withSubdirectories
+                        && !fsItem.getName().equals(AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destination"))) {
                     LOG.debug("Listing directory {}", fsItem);
                     FSDirectory directory = new FSDirectory(fsItem.getPath(), namePatterns, withSubdirectories);
                     if (!directory.iterate())

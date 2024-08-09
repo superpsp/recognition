@@ -1,6 +1,6 @@
 package org.psp.recognition.fs;
 
-import org.psp.recognition.RecognitionTools;
+import org.psp.tools.RecognitionTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
