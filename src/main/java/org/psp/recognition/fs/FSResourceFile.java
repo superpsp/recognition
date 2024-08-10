@@ -13,7 +13,7 @@ public class FSResourceFile extends FSFile {
 
     @Override
     public boolean run() {
-        LOG.debug("FSResourceFile = {}", this.getPath());
+        LOG.debug("FSResourceFile = {}", this.getAbsolutePath());
         FaceDetection faceDetection = FaceDetection.getInstance();
         faceDetection.addResource(this);
         return true;
