@@ -34,7 +34,7 @@ public class TestRecObject extends RecObject {
         super.preProcess();
 
         int totalBytes = (int)(mat.total() * mat.elemSize());
-        byte buffer[] = new byte[totalBytes];
+        byte[] buffer = new byte[totalBytes];
         mat.get(0, 0, buffer);
 
         for (int i = 0; i  <totalBytes; i++) {

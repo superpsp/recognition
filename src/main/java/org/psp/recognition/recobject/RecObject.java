@@ -3,7 +3,6 @@ package org.psp.recognition.recobject;
 import org.psp.tools.Timing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.swing.*;
 import java.io.File;
 import java.util.ArrayList;
 import org.opencv.core.*;
@@ -124,6 +123,9 @@ public class RecObject {
     protected void preProcessFile() {
         LOG.debug("Image {}", source);
         mat = Imgcodecs.imread(source.getPath());
+        if (mat.dataAddr() == 0) {
+            throw new IllegalStateException("Can not open file " + source.getPath());
+        }
         LOG.debug("mat = {}", mat);
     }
 
@@ -136,17 +138,8 @@ public class RecObject {
                     Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
                     break;
                 case "screen":
-                    Imgcodecs.imencode("." + source.getExtension(), mat, matOfByte);
-                    ImageIcon imageIcon = new ImageIcon(matOfByte.toArray());
-                    LOG.debug("Image prepared");
-
-                    JFrame frame = new JFrame("Image");
-                    JLabel label = new JLabel();
-                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                    label.setIcon(imageIcon);
-                    frame.getContentPane().add(label);
-                    frame.pack();
-                    frame.setVisible(true);
+                    ImageViewer imageViewer = new ImageViewer();
+                    imageViewer.show(mat, source.getName());
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + destinationType);
