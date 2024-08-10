@@ -1,5 +1,6 @@
 package org.psp.recognition.recobject;
 
+import org.opencv.objdetect.CascadeClassifier;
 import org.psp.recognition.opencv.OpencvCascadeClassifier;
 import org.psp.tools.Timing;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.psp.recognition.fs.FSDirectory;
 import org.psp.recognition.fs.FSFile;
 import org.psp.recognition.AppProperties;
-import org.psp.recognition.opencv.OpencvObject;
 
 public class RecObject {
     final static Logger LOG = LoggerFactory.getLogger(RecObject.class.getName());
@@ -23,6 +23,11 @@ public class RecObject {
     protected FSFile destination;
     protected boolean isOn = false;
     protected ArrayList<FSFile> resourceFiles = new ArrayList<>();
+    protected boolean isObjectRecognized = false;
+    protected Timing timing;
+    protected Mat mat;
+    protected MatOfRect matOfRect;
+    protected MatOfByte matOfByte;
 
     protected String getDestinationType() {
         return destinationType;
@@ -30,6 +35,12 @@ public class RecObject {
 
     public void setDestination(FSFile destination) {
         this.destination = destination;
+        if (destination.exists()) {
+            LOG.debug("Clearing destination directory {}", destination);
+            destination.delete();
+        }
+        LOG.debug("Creating destination directory {}", destination);
+        destination.mkdirs();
     }
 
     protected void setResources(ArrayList<String> fresourcePatterns) {
@@ -53,7 +64,7 @@ public class RecObject {
         this.sourceType = sourceType;
     }
 
-    protected void setSource(FSFile source) {
+    public void setSource(FSFile source) {
         LOG.debug("source = {}", source);
         this.source = source;
         if (source instanceof FSFile)
@@ -69,73 +80,39 @@ public class RecObject {
         return resourceFiles;
     }
 
-   public boolean isRecognized() {
+    public boolean isRecognized() {
         LOG.debug("isRecognized Start");
         LOG.debug("sourceType = {}", sourceType);
         LOG.debug("source = {}", source);
 
-        Timing timing = new Timing();
+        timing = new Timing();
 
         if (sourceType == null || source == null) {
             throw new IllegalStateException("Both values of sourceType and source are necessary");
         }
 
-        OpencvObject opencvObject = OpencvObject.getInstance();
-        OpencvCascadeClassifier opencvCascadeClassifier = OpencvCascadeClassifier.getInstance();
+        mat = new Mat();
+        matOfRect = new MatOfRect();
 
+        preProcess();
+        postProcess();
+
+        if (mat != null) mat.release();
+        if (matOfRect != null) matOfRect.release();
+        if (matOfByte != null) matOfByte.release();
+
+        LOG.debug("isRecognized End");
+        return isObjectRecognized;
+    }
+
+    public boolean isOn() {
+        return isOn;
+    }
+
+    protected void preProcess() {
         switch (sourceType) {
             case "file":
-                opencvObject.setMat(Imgcodecs.imread(source.getPath()));
-                LOG.debug("mat = {}", opencvObject.getMat());
-
-                for (FSFile resource : resourceFiles) {
-                    LOG.debug("resource = {}", resource);
-                    if (!opencvCascadeClassifier.setResource(resource.getAbsolutePath())) {
-                        break;
-                    }
-
-                    opencvCascadeClassifier.detectMultiScale(opencvObject.getMat(), opencvObject.getMatOfRect());
-                    LOG.info("Recognized {} faces", opencvObject.getMatOfRect().toArray().length);
-                    LOG.info("Used resource: {}", resource);
-
-                    if (opencvObject.getMatOfRect() != null && opencvObject.getMatOfRect().toArray().length > 0) {
-                        break;
-                    }
-                }
-                if (opencvObject.getMatOfRect() != null && opencvObject.getMatOfRect().toArray().length > 0) {
-                    for (Rect rect : opencvObject.getMatOfRect().toArray()) {
-                        Imgproc.rectangle(opencvObject.getMat(), new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
-                    }
-                    LOG.debug("Image {}", source);
-
-                    LOG.debug("destinationType = {}", destinationType);
-                    switch (destinationType) {
-                        case "file":
-                            LOG.debug("Write to {}", destination.getPath() + File.separator + source.getName());
-                            Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), opencvObject.getMat());
-                            break;
-                        case "screen":
-                            Imgcodecs.imencode("." + source.getExtension(), opencvObject.getMat(), opencvObject.getMatOfByte());
-                            ImageIcon imageIcon = new ImageIcon(opencvObject.getMatOfByte().toArray());
-                            LOG.debug("Image prepared");
-
-                            JFrame frame = new JFrame("Image");
-                            JLabel label = new JLabel();
-                            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                            label.setIcon(imageIcon);
-                            frame.getContentPane().add(label);
-                            frame.pack();
-                            frame.setVisible(true);
-                            break;
-                        default:
-                            throw new IllegalStateException("Unexpected value: " + destinationType);
-                    }
-                } else {
-                    LOG.debug(source + " is not recognized");
-                    return false;
-                }
-                timing.setEnd();
-                LOG.info("Time of recognition: {}", timing.getBetween());
+                preProcessFile();
                 break;
             case "video":
                 break;
@@ -144,12 +121,47 @@ public class RecObject {
             default:
                 throw new IllegalStateException("Unexpected value of sourceType: " + sourceType);
         }
-
-        LOG.debug("isRecognized End");
-        return true;
     }
 
-    public boolean isOn() {
-        return isOn;
+    protected void preProcessFile() {
+        LOG.debug("Image {}", source);
+        mat = Imgcodecs.imread(source.getPath());
+        LOG.debug("mat = {}", mat);
+    }
+
+    protected void postProcess() {
+        if (isObjectRecognized) {
+            for (Rect rect : matOfRect.toArray()) {
+                Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
+            }
+            LOG.debug("destinationType = {}", destinationType);
+            switch (destinationType) {
+                case "file":
+                    LOG.debug("Write to {}", destination.getPath() + File.separator + source.getName());
+                    Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
+                    break;
+                case "screen":
+                    matOfByte = new MatOfByte();
+                    Imgcodecs.imencode("." + source.getExtension(), mat, matOfByte);
+                    ImageIcon imageIcon = new ImageIcon(matOfByte.toArray());
+                    LOG.debug("Image prepared");
+
+                    JFrame frame = new JFrame("Image");
+                    JLabel label = new JLabel();
+                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    label.setIcon(imageIcon);
+                    frame.getContentPane().add(label);
+                    frame.pack();
+                    frame.setVisible(true);
+                    matOfByte.release();
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + destinationType);
+            }
+        } else {
+            LOG.debug(source + " is not recognized");
+        }
+        timing.setEnd();
+        LOG.info("Time of recognition: {}", timing.getBetween());
     }
 }
