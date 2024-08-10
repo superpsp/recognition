@@ -86,7 +86,7 @@ public class RecObject {
         switch (sourceType) {
             case "file":
                 opencvObject.setMat(Imgcodecs.imread(source.getPath()));
-                LOG.debug("opencvObject.getMat() = {}", opencvObject.getMat());
+                LOG.debug("mat = {}", opencvObject.getMat());
 
                 for (FSFile resource : resourceFiles) {
                     LOG.debug("resource = {}", resource);
