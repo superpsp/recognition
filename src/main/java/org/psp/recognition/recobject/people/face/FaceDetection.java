@@ -1,5 +1,9 @@
 package org.psp.recognition.recobject.people.face;
 
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 import org.psp.recognition.AppProperties;
 import org.psp.recognition.opencv.OpencvCascadeClassifier;
 import org.psp.tools.RecognitionTools;
@@ -104,5 +108,15 @@ public class FaceDetection extends RecObject {
                 break;
             }
         }
+    }
+
+    @Override
+    protected void postProcessFile() {
+        if (isObjectRecognized) {
+            for (Rect rect : matOfRect.toArray()) {
+                Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
+            }
+        }
+        super.postProcessFile();
     }
 }

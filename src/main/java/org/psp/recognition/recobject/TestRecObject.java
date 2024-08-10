@@ -20,14 +20,28 @@ public class TestRecObject extends RecObject {
 
     public void init() {
         if (AppProperties.getInstance().getProperties().get("detection").get("TestRecObject").equals("on")) {
+            LOG.debug("destinationType = {}", AppProperties.getInstance().getProperties().get("destination").get("TestRecObject.destinationType"));
+            setDestinationType(AppProperties.getInstance().getProperties().get("destination").get("TestRecObject.destinationType"));
+
             isOn = true;
         } else {
             LOG.info("TestRecObject is switched off");
         }
     }
 
-    public boolean test() {
+    @Override
+    protected void preProcess() {
+        super.preProcess();
 
-        return true;
+        int totalBytes = (int)(mat.total() * mat.elemSize());
+        byte buffer[] = new byte[totalBytes];
+        mat.get(0, 0, buffer);
+
+        for (int i = 0; i  <totalBytes; i++) {
+            if( i%3 == 0) buffer[i] = 0;
+        }
+        mat.put(0, 0, buffer);
+
+        isObjectRecognized = true;
     }
 }

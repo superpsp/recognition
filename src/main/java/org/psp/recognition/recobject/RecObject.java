@@ -1,7 +1,5 @@
 package org.psp.recognition.recobject;
 
-import org.opencv.objdetect.CascadeClassifier;
-import org.psp.recognition.opencv.OpencvCascadeClassifier;
 import org.psp.tools.Timing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +7,6 @@ import javax.swing.*;
 import java.io.File;
 import java.util.ArrayList;
 import org.opencv.core.*;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.psp.recognition.fs.FSDirectory;
 import org.psp.recognition.fs.FSFile;
@@ -93,6 +90,7 @@ public class RecObject {
 
         mat = new Mat();
         matOfRect = new MatOfRect();
+        matOfByte = new MatOfByte();
 
         preProcess();
         postProcess();
@@ -131,9 +129,6 @@ public class RecObject {
 
     protected void postProcess() {
         if (isObjectRecognized) {
-            for (Rect rect : matOfRect.toArray()) {
-                Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
-            }
             LOG.debug("destinationType = {}", destinationType);
             switch (destinationType) {
                 case "file":
@@ -141,7 +136,6 @@ public class RecObject {
                     Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
                     break;
                 case "screen":
-                    matOfByte = new MatOfByte();
                     Imgcodecs.imencode("." + source.getExtension(), mat, matOfByte);
                     ImageIcon imageIcon = new ImageIcon(matOfByte.toArray());
                     LOG.debug("Image prepared");
@@ -153,7 +147,6 @@ public class RecObject {
                     frame.getContentPane().add(label);
                     frame.pack();
                     frame.setVisible(true);
-                    matOfByte.release();
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + destinationType);
@@ -164,4 +157,5 @@ public class RecObject {
         timing.setEnd();
         LOG.info("Time of recognition: {}", timing.getBetween());
     }
+    protected void postProcessFile() {}
 }
