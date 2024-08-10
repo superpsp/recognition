@@ -1,6 +1,7 @@
 package org.psp.recognition.recobject.people.face;
 
 import org.psp.recognition.AppProperties;
+import org.psp.recognition.opencv.OpencvCascadeClassifier;
 import org.psp.tools.RecognitionTools;
 import org.psp.recognition.fs.FSFile;
 import org.slf4j.Logger;
@@ -44,21 +45,12 @@ public class FaceDetection extends RecObject {
                     AppProperties.getInstance().getProperties().get("directory").get("work")
                     + File.separator + AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destination")
                 );
-                if (fsFile.exists()) {
-                    LOG.debug("Clearing FaceDetection.destination directory {}", fsFile);
-                    fsFile.delete();
-                }
-                LOG.debug("Creating FaceDetection.destination directory {}", fsFile);
-                fsFile.mkdirs();
                 setDestination(fsFile);
             }
         }
     }
 
-    public void setSource(FSFile source) {
-        super.setSource(source);
-    }
-
+    @Override
     public void addResource(FSFile fsFile) {
         LOG.debug("fsFile = {}", fsFile);
         boolean toAdd = false;
@@ -89,5 +81,28 @@ public class FaceDetection extends RecObject {
         setResources(faceResourcePatterns);
 
         LOG.debug("getResources End");
+    }
+
+    @Override
+    protected void preProcessFile() {
+        super.preProcessFile();
+        for (FSFile resource : resourceFiles) {
+            LOG.debug("resource = {}", resource);
+
+            OpencvCascadeClassifier opencvCascadeClassifier = new OpencvCascadeClassifier(resource.getAbsolutePath());
+            opencvCascadeClassifier.detectMultiScale(mat, matOfRect);
+            try {
+                opencvCascadeClassifier.finalize();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+            LOG.info("Recognized {} objects", matOfRect.toArray().length);
+            LOG.info("Used resource: {}", resource);
+
+            if (matOfRect != null && matOfRect.toArray().length > 0) {
+                isObjectRecognized = true;
+                break;
+            }
+        }
     }
 }

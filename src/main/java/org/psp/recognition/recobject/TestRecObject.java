@@ -23,7 +23,11 @@ public class TestRecObject extends RecObject {
             isOn = true;
         } else {
             LOG.info("TestRecObject is switched off");
-            return;
         }
+    }
+
+    public boolean test() {
+
+        return true;
     }
 }
