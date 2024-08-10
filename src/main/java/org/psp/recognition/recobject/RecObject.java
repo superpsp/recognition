@@ -1,6 +1,6 @@
 package org.psp.recognition.recobject;
 
-import org.psp.recognition.AppProperties;
+import org.psp.recognition.opencv.OpencvCascadeClassifier;
 import org.psp.tools.Timing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +13,8 @@ import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.psp.recognition.fs.FSDirectory;
 import org.psp.recognition.fs.FSFile;
+import org.psp.recognition.AppProperties;
+import org.psp.recognition.opencv.OpencvObject;
 
 public class RecObject {
     final static Logger LOG = LoggerFactory.getLogger(RecObject.class.getName());
@@ -78,30 +80,31 @@ public class RecObject {
             throw new IllegalStateException("Both values of sourceType and source are necessary");
         }
 
+        OpencvObject opencvObject = OpencvObject.getInstance();
+        OpencvCascadeClassifier opencvCascadeClassifier = OpencvCascadeClassifier.getInstance();
+
         switch (sourceType) {
             case "file":
-                LOG.info("File: {}", source);
-                Mat tempMat = new Mat();
+                opencvObject.setMat(Imgcodecs.imread(source.getPath()));
+                LOG.debug("mat = {}", opencvObject.getMat());
 
-                Mat mat = Imgcodecs.imread(source.getPath());
-                CascadeClassifier cascadeClassifier;
-                MatOfRect matOfRect = null;
                 for (FSFile resource : resourceFiles) {
                     LOG.debug("resource = {}", resource);
-                    cascadeClassifier = new CascadeClassifier(resource.getAbsolutePath());
-                    matOfRect = new MatOfRect();
-                    try {
-                        cascadeClassifier.detectMultiScale(mat, matOfRect);
-                    } catch (CvException e) {
-                        LOG.error(e.toString());
+                    if (!opencvCascadeClassifier.setResource(resource.getAbsolutePath())) {
+                        break;
                     }
-                    LOG.info("Recognized {} faces", matOfRect.toArray().length);
-                    if (matOfRect != null && matOfRect.toArray().length > 0) break;
-                    LOG.info("Used: ", resource.getPath());
+
+                    opencvCascadeClassifier.detectMultiScale(opencvObject.getMat(), opencvObject.getMatOfRect());
+                    LOG.info("Recognized {} faces", opencvObject.getMatOfRect().toArray().length);
+                    LOG.info("Used resource: {}", resource);
+
+                    if (opencvObject.getMatOfRect() != null && opencvObject.getMatOfRect().toArray().length > 0) {
+                        break;
+                    }
                 }
-                if (matOfRect != null && matOfRect.toArray().length > 0) {
-                    for (Rect rect : matOfRect.toArray()) {
-                        Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
+                if (opencvObject.getMatOfRect() != null && opencvObject.getMatOfRect().toArray().length > 0) {
+                    for (Rect rect : opencvObject.getMatOfRect().toArray()) {
+                        Imgproc.rectangle(opencvObject.getMat(), new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
                     }
                     LOG.debug("Image {}", source);
 
@@ -109,12 +112,11 @@ public class RecObject {
                     switch (destinationType) {
                         case "file":
                             LOG.debug("Write to {}", destination.getPath() + File.separator + source.getName());
-                            Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
+                            Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), opencvObject.getMat());
                             break;
                         case "screen":
-                            MatOfByte matOfByte = new MatOfByte();
-                            Imgcodecs.imencode("." + source.getExtension(), mat, matOfByte);
-                            ImageIcon imageIcon = new ImageIcon(matOfByte.toArray());
+                            Imgcodecs.imencode("." + source.getExtension(), opencvObject.getMat(), opencvObject.getMatOfByte());
+                            ImageIcon imageIcon = new ImageIcon(opencvObject.getMatOfByte().toArray());
                             LOG.debug("Image prepared");
 
                             JFrame frame = new JFrame("Image");
