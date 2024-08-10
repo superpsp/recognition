@@ -12,8 +12,7 @@ import java.util.ArrayList;
 public class FaceDetection extends RecObject {
     final static Logger LOG = LoggerFactory.getLogger(FaceDetection.class.getName());
     private static FaceDetection INSTANCE;
-    private ArrayList<String> faceResourcePatterns = new ArrayList<>();
-
+    private final ArrayList<String> faceResourcePatterns = new ArrayList<>();
 
     // From FILE source to SCREEN
     private FaceDetection() {}
@@ -27,6 +26,12 @@ public class FaceDetection extends RecObject {
     }
 
     public void init() {
+        if (AppProperties.getInstance().getProperties().get("detection").get("FaceDetection").equals("on")) {
+            isOn = true;
+        } else {
+            LOG.info("FaceDetection is switched off");
+            return;
+        }
         if (faceResourcePatterns.isEmpty()) {
             setFaceResources();
 

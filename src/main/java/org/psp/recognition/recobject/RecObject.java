@@ -9,7 +9,6 @@ import java.io.File;
 import java.util.ArrayList;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.psp.recognition.fs.FSDirectory;
 import org.psp.recognition.fs.FSFile;
@@ -22,6 +21,7 @@ public class RecObject {
     protected String sourceType;
     protected String destinationType;
     protected FSFile destination;
+    protected boolean isOn = false;
     protected ArrayList<FSFile> resourceFiles = new ArrayList<>();
 
     protected String getDestinationType() {
@@ -147,5 +147,9 @@ public class RecObject {
 
         LOG.debug("isRecognized End");
         return true;
+    }
+
+    public boolean isOn() {
+        return isOn;
     }
 }
