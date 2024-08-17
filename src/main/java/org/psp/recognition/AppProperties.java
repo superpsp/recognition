@@ -49,5 +49,6 @@ public class AppProperties {
     public void setDestinations() {
         this.destinations.add(properties.get("destination").get("FaceDetection.destination"));
         this.destinations.add(properties.get("destination").get("TestRecObject.destination"));
+        this.destinations.add(properties.get("destination").get("TestYolo.destination"));
     }
 }

@@ -25,16 +25,18 @@ public class FSDirectory extends AbstractFSObject {
             for (File fsItem : fileList) {
                 LOG.debug("fsItem = {}", fsItem);
 
-                if (fsItem.isDirectory() && withSubdirectories && !AppProperties.getInstance().getDestinations().contains(fsItem.getName())) {
-                    LOG.debug("Listing directory {}", fsItem);
-                    FSDirectory directory = new FSDirectory(fsItem.getPath(), namePatterns, withSubdirectories, isToDelete);
-                    if (!directory.iterate())
-                        throw new IllegalStateException("Can not list " + directory);
-                } else {
-                    LOG.debug("directory = {}", this.getPath());
-                    FSFile file = new FSFile(fsItem.getPath(), isToDelete);
-                    if (!file.run())
-                        throw new IllegalStateException("Can not run " + file);
+                if (!AppProperties.getInstance().getDestinations().contains(fsItem.getName())) {
+                    if (fsItem.isDirectory() && withSubdirectories) {
+                        LOG.debug("Listing directory {}", fsItem);
+                        FSDirectory directory = new FSDirectory(fsItem.getPath(), namePatterns, withSubdirectories, isToDelete);
+                        if (!directory.iterate())
+                            throw new IllegalStateException("Can not list " + directory);
+                    } else {
+                        LOG.debug("directory = {}", this.getPath());
+                        FSFile file = new FSFile(fsItem.getPath(), isToDelete);
+                        if (!file.run())
+                            throw new IllegalStateException("Can not run " + file);
+                    }
                 }
             }
         }
