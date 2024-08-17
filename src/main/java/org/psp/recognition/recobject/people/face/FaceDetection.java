@@ -97,7 +97,7 @@ public class FaceDetection extends RecObject {
             OpencvCascadeClassifier opencvCascadeClassifier = new OpencvCascadeClassifier(resource.getAbsolutePath());
             LOG.debug("OpencvCascadeClassifier created");
 //            opencvCascadeClassifier.detectMultiScale(grayMat, matOfRect);
-            opencvCascadeClassifier.detectMultiScale(grayMat, matOfRect, 1.15, 5, 0, 5, 5);
+            opencvCascadeClassifier.detectMultiScale(grayMat, matOfRect, 1.15, 5);
             LOG.debug("Detection completed");
 
             grayMat.release();
