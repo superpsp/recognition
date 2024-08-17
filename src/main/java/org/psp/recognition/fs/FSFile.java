@@ -1,11 +1,14 @@
 package org.psp.recognition.fs;
 
-import org.psp.recognition.recobject.people.face.FaceDetection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 
 public class FSFile extends FSDirectory {
@@ -30,6 +33,7 @@ public class FSFile extends FSDirectory {
                         throw new IllegalStateException("Can not process file " + this.getPath());
                     }
                     break;
+                case "yolo":
                 case "xml":
                     FSResourceFile resourceFile = new FSResourceFile(this.getPath());
                     if (!resourceFile.run()) {
@@ -62,11 +66,24 @@ public class FSFile extends FSDirectory {
         return true;
     }
 
-    public String getExtension() {
+    protected String getExtension() {
         return FilenameUtils.getExtension(this.getName());
     }
 
-    public static String getFileSeparator() {
+    protected static String getFileSeparator() {
         return File.separator;
+    }
+
+    public ArrayList<String> getLines() {
+        ArrayList<String> lines = new ArrayList<>();
+
+        try {
+            Scanner scanner = new Scanner(this);
+            while (scanner.hasNextLine())
+                lines.add(scanner.nextLine());
+        } catch (FileNotFoundException e) {
+            throw new IllegalStateException("Can not read file " + this.getPath());
+        }
+        return lines;
     }
 }

@@ -1,5 +1,6 @@
 package org.psp.recognition.fs;
 
+import org.psp.recognition.recobject.TestYolo;
 import org.psp.recognition.recobject.people.face.FaceDetection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,14 @@ public class FSResourceFile extends FSFile {
     @Override
     public boolean run() {
         LOG.debug("FSResourceFile = {}", this.getAbsolutePath());
+
         FaceDetection faceDetection = FaceDetection.getInstance();
-        faceDetection.addResource(this);
+        if (faceDetection.isOn())
+            faceDetection.addResource(this);
+
+        TestYolo testYolo = TestYolo.getInstance();
+        if (testYolo.isOn())
+            testYolo.addResource(this);
         return true;
     }
 }
