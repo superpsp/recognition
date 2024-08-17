@@ -1,15 +1,13 @@
 package org.psp.recognition.recobject;
 
 import org.opencv.objdetect.CascadeClassifier;
-import org.psp.recognition.opencv.OpencvCascadeClassifier;
+import org.psp.recognition.gui.ImageViewer;
 import org.psp.tools.Timing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.swing.*;
 import java.io.File;
 import java.util.ArrayList;
 import org.opencv.core.*;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.psp.recognition.fs.FSDirectory;
 import org.psp.recognition.fs.FSFile;
@@ -23,15 +21,17 @@ public class RecObject {
     protected FSFile destination;
     protected boolean isOn = false;
     protected ArrayList<FSFile> resourceFiles = new ArrayList<>();
-    protected boolean isObjectRecognized = false;
+    protected boolean isObjectRecognized;
     protected Timing timing;
     protected Mat mat;
+    protected Mat matDestination;
     protected MatOfRect matOfRect;
     protected MatOfByte matOfByte;
 
     protected String getDestinationType() {
         return destinationType;
     }
+
 
     public void setDestination(FSFile destination) {
         this.destination = destination;
@@ -49,7 +49,7 @@ public class RecObject {
         String pathName = System.getProperty("user.dir")
                 + File.separator + AppProperties.getInstance().getProperties().get("directory").get("resource");
         LOG.debug("pathName = {}", pathName);
-        FSDirectory resourceDirectory = new FSDirectory(pathName, fresourcePatterns, true);
+        FSDirectory resourceDirectory = new FSDirectory(pathName, fresourcePatterns, true, false);
         resourceDirectory.iterate();
 
         LOG.debug("resourceFiles = {}", resourceFiles);
@@ -92,12 +92,15 @@ public class RecObject {
         }
 
         mat = new Mat();
+        matDestination = new Mat();
         matOfRect = new MatOfRect();
+        matOfByte = new MatOfByte();
 
         preProcess();
         postProcess();
 
         if (mat != null) mat.release();
+        if (matDestination != null) matDestination.release();
         if (matOfRect != null) matOfRect.release();
         if (matOfByte != null) matOfByte.release();
 
@@ -110,6 +113,7 @@ public class RecObject {
     }
 
     protected void preProcess() {
+        isObjectRecognized = false;
         switch (sourceType) {
             case "file":
                 preProcessFile();
@@ -124,36 +128,25 @@ public class RecObject {
     }
 
     protected void preProcessFile() {
-        LOG.debug("Image {}", source);
+        LOG.info("Image {}", source);
         mat = Imgcodecs.imread(source.getPath());
+        if (mat.dataAddr() == 0) {
+            throw new IllegalStateException("Can not open file " + source.getPath());
+        }
         LOG.debug("mat = {}", mat);
     }
 
     protected void postProcess() {
         if (isObjectRecognized) {
-            for (Rect rect : matOfRect.toArray()) {
-                Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
-            }
             LOG.debug("destinationType = {}", destinationType);
             switch (destinationType) {
                 case "file":
-                    LOG.debug("Write to {}", destination.getPath() + File.separator + source.getName());
+                    LOG.info("Write to {}", destination.getPath() + File.separator + source.getName());
                     Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
                     break;
                 case "screen":
-                    matOfByte = new MatOfByte();
-                    Imgcodecs.imencode("." + source.getExtension(), mat, matOfByte);
-                    ImageIcon imageIcon = new ImageIcon(matOfByte.toArray());
-                    LOG.debug("Image prepared");
-
-                    JFrame frame = new JFrame("Image");
-                    JLabel label = new JLabel();
-                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                    label.setIcon(imageIcon);
-                    frame.getContentPane().add(label);
-                    frame.pack();
-                    frame.setVisible(true);
-                    matOfByte.release();
+                    ImageViewer imageViewer = new ImageViewer();
+                    imageViewer.show(matDestination, source.getName());
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + destinationType);
@@ -164,4 +157,5 @@ public class RecObject {
         timing.setEnd();
         LOG.info("Time of recognition: {}", timing.getBetween());
     }
+    protected void postProcessFile() {}
 }

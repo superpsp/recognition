@@ -26,7 +26,8 @@ public class FSImageFile extends FSFile {
         TestRecObject testRecObject = TestRecObject.getInstance();
         testRecObject.init();
         if (testRecObject.isOn()) {
-            isRecognized = testRecObject.test();
+            testRecObject.setSource(this);
+            isRecognized = testRecObject.isRecognized();
         }
         return isRecognized;
     }

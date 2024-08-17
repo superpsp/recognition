@@ -15,7 +15,7 @@ public class Recognition {
 
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-        FSDirectory workDirectory = new FSDirectory(true, AppProperties.getInstance().getProperties().get("directory").get("work"));
+        FSDirectory workDirectory = new FSDirectory(AppProperties.getInstance().getProperties().get("directory").get("work"), null, false, false);
         LOG.debug("workDirectory = {}", workDirectory);
         workDirectory.iterate();
 

@@ -8,28 +8,14 @@ import java.util.ArrayList;
 
 public class FSDirectory extends AbstractFSObject {
     private final static Logger LOG = LoggerFactory.getLogger(FSDirectory.class.getName());
-    private boolean isToDelete = false;
     private ArrayList<String> namePatterns;
     private boolean withSubdirectories = false; // with subdirectories
 
-    public FSDirectory(String pathname, boolean isToDelete) {
-        super(pathname);
-        this.isToDelete = isToDelete;
-    }
-
-    public FSDirectory(boolean withSubdirectories, String pathname) {
-        super(pathname);
-        this.withSubdirectories = withSubdirectories;
-    }
-
-    public FSDirectory(String pathname, ArrayList<String> namePatterns, boolean withSubdirectories) {
+    public FSDirectory(String pathname, ArrayList<String> namePatterns, boolean withSubdirectories, boolean isToDelete) {
         super(pathname);
         this.namePatterns = namePatterns;
         this.withSubdirectories = withSubdirectories;
-    }
-
-    public FSDirectory(String pathname) {
-        super(pathname);
+        this.isToDelete = isToDelete;
     }
 
     public boolean iterate() {
@@ -39,24 +25,21 @@ public class FSDirectory extends AbstractFSObject {
             for (File fsItem : fileList) {
                 LOG.debug("fsItem = {}", fsItem);
 
-                if (fsItem.isDirectory() && withSubdirectories
-                        && !fsItem.getName().equals(AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destination"))) {
+                if (fsItem.isDirectory() && withSubdirectories && !AppProperties.getInstance().getDestinations().contains(fsItem.getName())) {
                     LOG.debug("Listing directory {}", fsItem);
-                    FSDirectory directory = new FSDirectory(fsItem.getPath(), namePatterns, withSubdirectories);
+                    FSDirectory directory = new FSDirectory(fsItem.getPath(), namePatterns, withSubdirectories, isToDelete);
                     if (!directory.iterate())
                         throw new IllegalStateException("Can not list " + directory);
                 } else {
                     LOG.debug("directory = {}", this.getPath());
-                    FSFile file = new FSFile(fsItem.getPath());
+                    FSFile file = new FSFile(fsItem.getPath(), isToDelete);
                     if (!file.run())
                         throw new IllegalStateException("Can not run " + file);
                 }
-                if (isToDelete) {
-                    LOG.debug("Delete fsItem {}", fsItem);
-                    this.delete();
-                }
             }
         }
+        deleteFSObject();
+
         return true;
     }
 }

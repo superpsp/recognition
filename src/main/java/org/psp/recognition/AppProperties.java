@@ -10,6 +10,7 @@ public class AppProperties {
     private static AppProperties INSTANCE;
     private static final String LOG_CONFIG_FILE = System.getProperty("user.dir") + File.separator + "rec_log.properties";
     private Map<String, Map<String, String>> properties;
+    private ArrayList<String> destinations = new ArrayList<>();
 
     private AppProperties() {};
 
@@ -22,21 +23,31 @@ public class AppProperties {
 
     public void init() {
         PropertyConfigurator.configure(LOG_CONFIG_FILE);
-        findIniFile();
+        setIniFile();
     }
 
-    private static void findIniFile() {
+    private static void setIniFile() {
         ArrayList<String> iniPatterns = new ArrayList<>();
         iniPatterns.add("recognition.ini");
-        FSDirectory currentDirectory = new FSDirectory(System.getProperty("user.dir"), iniPatterns, false);
+        FSDirectory currentDirectory = new FSDirectory(System.getProperty("user.dir"), iniPatterns, false, false);
         currentDirectory.iterate();
     }
 
     public void setProperties(Map<String, Map<String, String>> properties) {
         this.properties = properties;
+        setDestinations();
     }
 
     public Map<String, Map<String, String>> getProperties() {
         return properties;
+    }
+
+    public ArrayList<String> getDestinations() {
+        return destinations;
+    }
+
+    public void setDestinations() {
+        this.destinations.add(properties.get("destination").get("FaceDetection.destination"));
+        this.destinations.add(properties.get("destination").get("TestRecObject.destination"));
     }
 }

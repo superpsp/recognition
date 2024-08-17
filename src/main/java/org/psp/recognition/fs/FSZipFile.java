@@ -16,18 +16,19 @@ public class FSZipFile extends FSFile {
     public boolean run() {
         LOG.debug("{} unzipping", this.getPath());
 
-        ZipFile zipFile = new ZipFile(this.getPath());
-        FSDirectory fsDirectory = new FSDirectory(this.getPath(), true);
-        if (!fsDirectory.mkdirs()) {
-            throw new IllegalStateException("Can not create directory " + this.getName());
-        }
-        LOG.debug("Directory {} was created", fsDirectory.getPath());
+//        if (!fsDirectory.mkdirs()) {
+//            throw new IllegalStateException("Can not create directory " + this.getName());
+//        }
+//        LOG.debug("Directory {} was created", fsDirectory.getPath());
 
+        ZipFile zipFile = new ZipFile(this.getPath());
         try {
-            zipFile.extractAll(fsDirectory.getPath());
+            zipFile.extractAll(zipFile.getFile().getParent());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        FSDirectory fsDirectory = new FSDirectory(this.getPath().replace(".zip", ""), null, true, true);
+        LOG.debug("Directory {} was created", fsDirectory.getPath());
         if (!fsDirectory.iterate()) {
             throw new IllegalStateException("Can not iterate directory " + fsDirectory.getPath());
         }
