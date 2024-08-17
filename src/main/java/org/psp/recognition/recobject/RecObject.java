@@ -1,5 +1,7 @@
 package org.psp.recognition.recobject;
 
+import org.opencv.objdetect.CascadeClassifier;
+import org.psp.recognition.gui.ImageViewer;
 import org.psp.tools.Timing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,15 +21,17 @@ public class RecObject {
     protected FSFile destination;
     protected boolean isOn = false;
     protected ArrayList<FSFile> resourceFiles = new ArrayList<>();
-    protected boolean isObjectRecognized = false;
+    protected boolean isObjectRecognized;
     protected Timing timing;
     protected Mat mat;
+    protected Mat matDestination;
     protected MatOfRect matOfRect;
     protected MatOfByte matOfByte;
 
     protected String getDestinationType() {
         return destinationType;
     }
+
 
     public void setDestination(FSFile destination) {
         this.destination = destination;
@@ -45,7 +49,7 @@ public class RecObject {
         String pathName = System.getProperty("user.dir")
                 + File.separator + AppProperties.getInstance().getProperties().get("directory").get("resource");
         LOG.debug("pathName = {}", pathName);
-        FSDirectory resourceDirectory = new FSDirectory(pathName, fresourcePatterns, true);
+        FSDirectory resourceDirectory = new FSDirectory(pathName, fresourcePatterns, true, false);
         resourceDirectory.iterate();
 
         LOG.debug("resourceFiles = {}", resourceFiles);
@@ -88,6 +92,7 @@ public class RecObject {
         }
 
         mat = new Mat();
+        matDestination = new Mat();
         matOfRect = new MatOfRect();
         matOfByte = new MatOfByte();
 
@@ -95,6 +100,7 @@ public class RecObject {
         postProcess();
 
         if (mat != null) mat.release();
+        if (matDestination != null) matDestination.release();
         if (matOfRect != null) matOfRect.release();
         if (matOfByte != null) matOfByte.release();
 
@@ -107,6 +113,7 @@ public class RecObject {
     }
 
     protected void preProcess() {
+        isObjectRecognized = false;
         switch (sourceType) {
             case "file":
                 preProcessFile();
@@ -121,7 +128,7 @@ public class RecObject {
     }
 
     protected void preProcessFile() {
-        LOG.debug("Image {}", source);
+        LOG.info("Image {}", source);
         mat = Imgcodecs.imread(source.getPath());
         if (mat.dataAddr() == 0) {
             throw new IllegalStateException("Can not open file " + source.getPath());
@@ -134,12 +141,12 @@ public class RecObject {
             LOG.debug("destinationType = {}", destinationType);
             switch (destinationType) {
                 case "file":
-                    LOG.debug("Write to {}", destination.getPath() + File.separator + source.getName());
+                    LOG.info("Write to {}", destination.getPath() + File.separator + source.getName());
                     Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
                     break;
                 case "screen":
                     ImageViewer imageViewer = new ImageViewer();
-                    imageViewer.show(mat, source.getName());
+                    imageViewer.show(matDestination, source.getName());
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + destinationType);

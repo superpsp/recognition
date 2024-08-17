@@ -5,7 +5,6 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.psp.recognition.AppProperties;
-import org.psp.recognition.opencv.OpencvCascadeClassifier;
 import org.psp.tools.RecognitionTools;
 import org.psp.recognition.fs.FSFile;
 import org.slf4j.Logger;
@@ -93,15 +92,16 @@ public class FaceDetection extends RecObject {
         for (FSFile resource : resourceFiles) {
             LOG.debug("resource = {}", resource);
 
-            OpencvCascadeClassifier opencvCascadeClassifier = new OpencvCascadeClassifier(resource.getAbsolutePath());
-            opencvCascadeClassifier.detectMultiScale(mat, matOfRect);
-            try {
-                opencvCascadeClassifier.finalize();
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
+//            OpencvCascadeClassifier opencvCascadeClassifier = new OpencvCascadeClassifier(resource.getAbsolutePath());
+//            opencvCascadeClassifier.detectMultiScale(mat, matOfRect);
+//            try {
+//                opencvCascadeClassifier.finalize();
+//            } catch (Throwable e) {
+//                throw new RuntimeException(e);
+//            }
             LOG.info("Recognized {} objects", matOfRect.toArray().length);
-            LOG.info("Used resource: {}", resource);
+            if (matOfRect.toArray().length > 0)
+                LOG.info("Used resource: {}", resource);
 
             if (matOfRect != null && matOfRect.toArray().length > 0) {
                 isObjectRecognized = true;

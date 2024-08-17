@@ -29,7 +29,6 @@ public class FSImageFile extends FSFile {
             testRecObject.setSource(this);
             isRecognized = testRecObject.isRecognized();
         }
-
         return isRecognized;
     }
 }

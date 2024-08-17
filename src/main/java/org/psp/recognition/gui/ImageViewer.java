@@ -1,26 +1,23 @@
-package org.psp.recognition.recobject;
+package org.psp.recognition.gui;
 
 import org.opencv.core.Mat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.WindowConstants;
-import java.awt.Image;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.Dimension;
-import java.awt.BorderLayout;
 import java.awt.image.DataBufferByte;
 
 public class ImageViewer {
     final static Logger LOG = LoggerFactory.getLogger(ImageViewer.class.getName());
     private JLabel jLabel;
+    Mat mat;
 
     public void show(Mat mat, String windowName){
+        this.mat = mat;
         setSystemLookAndFeel();
         JFrame frame = createJFrame(windowName);
         Image loadedImage = toBufferedImage(mat);
@@ -63,4 +60,5 @@ public class ImageViewer {
         System.arraycopy(buffer, 0, targetPixels, 0, buffer.length);
         return image;
     }
+
 }

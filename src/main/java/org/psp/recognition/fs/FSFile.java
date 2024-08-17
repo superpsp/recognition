@@ -14,6 +14,10 @@ public class FSFile extends FSDirectory {
     public FSFile(String pathname) {
         super(pathname);
     }
+    public FSFile(String pathname, boolean isToDelete) {
+        super(pathname);
+        this.isToDelete = isToDelete;
+    }
     public boolean run() {
         LOG.debug("{} running", this.getPath());
 
@@ -40,6 +44,11 @@ public class FSFile extends FSDirectory {
                     if (!fsImageFile.run()) {
                         LOG.debug("Can not process file " + this.getPath());
                     }
+//                    if (isToDelete) {
+//                        LOG.debug("Delete {}", this);
+//                        if (!this.delete())
+//                            throw new IllegalStateException("Can not delete " + this.getPath());
+//                    }
                     break;
                 case "ini":
                     FSPropertiesFile fsPropertiesFile = new FSPropertiesFile(this.getPath());
@@ -49,6 +58,8 @@ public class FSFile extends FSDirectory {
                     break;
             }
         }
+        deleteFSObject();
+
         return true;
     }
 
