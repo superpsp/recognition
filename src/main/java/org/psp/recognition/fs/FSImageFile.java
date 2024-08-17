@@ -1,6 +1,7 @@
 package org.psp.recognition.fs;
 
 import org.psp.recognition.recobject.TestRecObject;
+import org.psp.recognition.recobject.TestYolo;
 import org.psp.recognition.recobject.people.face.FaceDetection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,13 @@ public class FSImageFile extends FSFile {
         if (testRecObject.isOn()) {
             testRecObject.setSource(this);
             isRecognized = testRecObject.isRecognized();
+        }
+
+        TestYolo testYolo = TestYolo.getInstance();
+        testYolo.init();
+        if (testYolo.isOn()) {
+            testYolo.setSource(this);
+            isRecognized = testYolo.isRecognized();
         }
         return isRecognized;
     }

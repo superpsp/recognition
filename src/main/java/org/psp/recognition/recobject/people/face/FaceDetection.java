@@ -31,24 +31,25 @@ public class FaceDetection extends RecObject {
     public void init() {
         if (AppProperties.getInstance().getProperties().get("detection").get("FaceDetection").equals("on")) {
             isOn = true;
+
+            if (faceResourcePatterns.isEmpty()) {
+                setFaceResources();
+
+                LOG.debug("destinationType = {}", AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destinationType"));
+                setDestinationType(AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destinationType"));
+
+                LOG.debug("destination = {}", AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destination"));
+                if (AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destinationType").equals("file")) {
+                    FSFile fsFile = new FSFile(
+                        AppProperties.getInstance().getProperties().get("directory").get("work")
+                        + File.separator + AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destination")
+                    );
+                    setDestination(fsFile);
+                }
+            }
         } else {
             LOG.info("FaceDetection is switched off");
             return;
-        }
-        if (faceResourcePatterns.isEmpty()) {
-            setFaceResources();
-
-            LOG.debug("destinationType = {}", AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destinationType"));
-            setDestinationType(AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destinationType"));
-
-            LOG.debug("destination = {}", AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destination"));
-            if (AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destinationType").equals("file")) {
-                FSFile fsFile = new FSFile(
-                    AppProperties.getInstance().getProperties().get("directory").get("work")
-                    + File.separator + AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destination")
-                );
-                setDestination(fsFile);
-            }
         }
     }
 
@@ -68,7 +69,7 @@ public class FaceDetection extends RecObject {
     }
 
     private void setFaceResources() {
-        LOG.debug("getResources Start");
+        LOG.debug("setFaceResources Start");
 
         faceResourcePatterns.add("lbpcascade_frontalface.xml");
         faceResourcePatterns.add("lbpcascade_frontalface_improved.xml");
@@ -82,7 +83,7 @@ public class FaceDetection extends RecObject {
 
         setResources(faceResourcePatterns);
 
-        LOG.debug("getResources End");
+        LOG.debug("setFaceResources End");
     }
 
     @Override
