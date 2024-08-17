@@ -1,10 +1,9 @@
 package org.psp.recognition.recobject.people.face;
 
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
+import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.psp.recognition.AppProperties;
+import org.psp.recognition.opencv.OpencvCascadeClassifier;
 import org.psp.tools.RecognitionTools;
 import org.psp.recognition.fs.FSFile;
 import org.slf4j.Logger;
@@ -92,13 +91,21 @@ public class FaceDetection extends RecObject {
         for (FSFile resource : resourceFiles) {
             LOG.debug("resource = {}", resource);
 
-//            OpencvCascadeClassifier opencvCascadeClassifier = new OpencvCascadeClassifier(resource.getAbsolutePath());
-//            opencvCascadeClassifier.detectMultiScale(mat, matOfRect);
-//            try {
-//                opencvCascadeClassifier.finalize();
-//            } catch (Throwable e) {
-//                throw new RuntimeException(e);
-//            }
+            Mat grayMat = new Mat();
+            Imgproc.cvtColor(mat, grayMat, Imgproc.COLOR_BGR2GRAY);
+
+            OpencvCascadeClassifier opencvCascadeClassifier = new OpencvCascadeClassifier(resource.getAbsolutePath());
+            LOG.debug("OpencvCascadeClassifier created");
+//            opencvCascadeClassifier.detectMultiScale(grayMat, matOfRect);
+            opencvCascadeClassifier.detectMultiScale(grayMat, matOfRect, 1.15, 5, 0, 5, 5);
+            LOG.debug("Detection completed");
+
+            grayMat.release();
+            try {
+                opencvCascadeClassifier.finalize();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
             LOG.info("Recognized {} objects", matOfRect.toArray().length);
             if (matOfRect.toArray().length > 0)
                 LOG.info("Used resource: {}", resource);
@@ -113,6 +120,7 @@ public class FaceDetection extends RecObject {
     @Override
     protected void postProcessFile() {
         if (isObjectRecognized) {
+            LOG.debug("matOfRect.toArray().length = {}", matOfRect.toArray().length);
             for (Rect rect : matOfRect.toArray()) {
                 Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
             }

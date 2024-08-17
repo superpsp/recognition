@@ -1,6 +1,5 @@
 package org.psp.recognition.recobject;
 
-import org.opencv.objdetect.CascadeClassifier;
 import org.psp.recognition.gui.ImageViewer;
 import org.psp.tools.Timing;
 import org.slf4j.Logger;
@@ -35,6 +34,7 @@ public class RecObject {
 
     public void setDestination(FSFile destination) {
         this.destination = destination;
+//        TODO: Clear files
         if (destination.exists()) {
             LOG.debug("Clearing destination directory {}", destination);
             destination.delete();
@@ -43,13 +43,13 @@ public class RecObject {
         destination.mkdirs();
     }
 
-    protected void setResources(ArrayList<String> fresourcePatterns) {
-        LOG.debug("fresourcePatterns = {}", fresourcePatterns);
+    protected void setResources(ArrayList<String> resourcePatterns) {
+        LOG.debug("resourcePatterns = {}", resourcePatterns);
 
         String pathName = System.getProperty("user.dir")
                 + File.separator + AppProperties.getInstance().getProperties().get("directory").get("resource");
         LOG.debug("pathName = {}", pathName);
-        FSDirectory resourceDirectory = new FSDirectory(pathName, fresourcePatterns, true, false);
+        FSDirectory resourceDirectory = new FSDirectory(pathName, resourcePatterns, true, false);
         resourceDirectory.iterate();
 
         LOG.debug("resourceFiles = {}", resourceFiles);
@@ -141,6 +141,7 @@ public class RecObject {
             LOG.debug("destinationType = {}", destinationType);
             switch (destinationType) {
                 case "file":
+                    postProcessFile();
                     LOG.info("Write to {}", destination.getPath() + File.separator + source.getName());
                     Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
                     break;
