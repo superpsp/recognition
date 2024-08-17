@@ -12,11 +12,10 @@ public class FSFile extends FSDirectory {
     private final static Logger LOG = LoggerFactory.getLogger(FSFile.class.getName());
 
     public FSFile(String pathname) {
-        super(pathname);
+        super(pathname, null, false, false);
     }
     public FSFile(String pathname, boolean isToDelete) {
-        super(pathname);
-        this.isToDelete = isToDelete;
+        super(pathname, null, false, isToDelete);
     }
     public boolean run() {
         LOG.debug("{} running", this.getPath());

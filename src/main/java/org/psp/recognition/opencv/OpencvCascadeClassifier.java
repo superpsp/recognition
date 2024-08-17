@@ -12,7 +12,7 @@ public class OpencvCascadeClassifier extends CascadeClassifier {
     }
 
     @Override
-    protected void finalize() throws Throwable {
+    public void finalize() throws Throwable {
         super.finalize();
     }
 }
