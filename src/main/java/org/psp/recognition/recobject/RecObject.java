@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.psp.recognition.fs.FSDirectory;
@@ -18,9 +20,8 @@ public class RecObject {
     protected String sourceType;
     protected String destinationType;
     protected FSFile destination;
-    protected boolean isOn = false;
     protected ArrayList<FSFile> resourceFiles = new ArrayList<>();
-    protected boolean isObjectRecognized;
+    protected boolean isObjectRecognized = false;
     protected Timing timing;
     protected Mat mat;
     protected Mat matDestination;
@@ -31,16 +32,27 @@ public class RecObject {
         return destinationType;
     }
 
-
     public void setDestination(FSFile destination) {
         this.destination = destination;
-//        TODO: Clear files
         if (destination.exists()) {
-            LOG.debug("Clearing destination directory {}", destination);
-            destination.delete();
+            destination.deleteFSObject();
         }
         LOG.debug("Creating destination directory {}", destination);
         destination.mkdirs();
+    }
+
+    protected void init(String objectName) {
+        LOG.debug("destinationType = {}", AppProperties.getInstance().getProperties().get("destination").get(objectName + ".destinationType"));
+        setDestinationType(AppProperties.getInstance().getProperties().get("destination").get(objectName + ".destinationType"));
+
+        LOG.debug("destination = {}", AppProperties.getInstance().getProperties().get("destination").get(objectName + ".destination"));
+        if (getDestinationType().equals("file")) {
+            FSFile fsFile = new FSFile(
+        AppProperties.getInstance().getProperties().get("directory").get("work")
+                + File.separator + AppProperties.getInstance().getProperties().get("destination").get(objectName + ".destination")
+            );
+            setDestination(fsFile);
+        }
     }
 
     protected void setResources(ArrayList<String> resourcePatterns) {
@@ -80,7 +92,7 @@ public class RecObject {
         return resourceFiles;
     }
 
-    public boolean isRecognized() {
+    protected boolean isRecognized() {
         LOG.debug("isRecognized Start");
         LOG.debug("sourceType = {}", sourceType);
         LOG.debug("source = {}", source);
@@ -97,7 +109,8 @@ public class RecObject {
         matOfByte = new MatOfByte();
 
         preProcess();
-        postProcess();
+        if (isObjectRecognized)
+            postProcess();
 
         if (mat != null) mat.release();
         if (matDestination != null) matDestination.release();
@@ -108,16 +121,10 @@ public class RecObject {
         return isObjectRecognized;
     }
 
-    public boolean isOn() {
-        return isOn;
-    }
-
     protected void preProcess() {
-        isObjectRecognized = false;
         switch (sourceType) {
             case "file":
                 preProcessFile();
-                break;
             case "video":
                 break;
             case "camera":
@@ -128,12 +135,14 @@ public class RecObject {
     }
 
     protected void preProcessFile() {
-        LOG.info("Image {}", source);
-        mat = Imgcodecs.imread(source.getPath());
-        if (mat.dataAddr() == 0) {
-            throw new IllegalStateException("Can not open file " + source.getPath());
-        }
+        LOG.debug("Image {}", source);
+        mat = Imgcodecs.imread(source.getPath(), Imgcodecs.IMREAD_COLOR);
         LOG.debug("mat = {}", mat);
+        if (mat.dataAddr() != 0) {
+            isObjectRecognized = true;
+        } else {
+            LOG.error("Can not open file {}", source.getPath());
+        }
     }
 
     protected void postProcess() {
@@ -143,7 +152,11 @@ public class RecObject {
                 case "file":
                     postProcessFile();
                     LOG.info("Write to {}", destination.getPath() + File.separator + source.getName());
-                    Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
+                    try {
+                        Imgcodecs.imwrite(destination.getPath() + File.separator + source.getName(), mat);
+                    } catch (Exception e) {
+                        LOG.error(Arrays.toString(e.getStackTrace()));
+                    }
                     break;
                 case "screen":
                     ImageViewer imageViewer = new ImageViewer();

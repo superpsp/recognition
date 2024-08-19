@@ -1,4 +1,4 @@
-package org.psp.opencv;
+package org.psp.recognition.opencv;
 
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;

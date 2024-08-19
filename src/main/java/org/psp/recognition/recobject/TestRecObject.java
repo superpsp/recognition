@@ -5,12 +5,15 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.ml.Boost;
 import org.opencv.ml.Ml;
 import org.psp.recognition.AppProperties;
+import org.psp.recognition.fs.FSFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestRecObject extends RecObject {
     final static Logger LOG = LoggerFactory.getLogger(TestRecObject.class.getName());
     private static TestRecObject INSTANCE;
+    private static boolean isInitPerformed = false;
+    private static boolean isOn;
 
     private TestRecObject() {}
 
@@ -18,21 +21,28 @@ public class TestRecObject extends RecObject {
         if (INSTANCE == null) {
             INSTANCE = new TestRecObject();
             LOG.debug("A new TestRecObject instance was created");
+
+            isOn = AppProperties.getInstance().getProperties().get("detection").get("TestRecObject").equals("on");
         }
         return INSTANCE;
     }
 
-    public void init() {
-        if (AppProperties.getInstance().getProperties().get("detection").get("TestRecObject").equals("on")) {
-            LOG.debug("destinationType = {}", AppProperties.getInstance().getProperties().get("destination").get("TestRecObject.destinationType"));
-            setDestinationType(AppProperties.getInstance().getProperties().get("destination").get("TestRecObject.destinationType"));
+    public boolean isOn() {
+        return isOn;
+    }
 
-            isOn = true;
-        } else {
-            LOG.info("TestRecObject is switched off");
+    public void init() {
+        if (!isInitPerformed) {
+            super.init("TestRecObject");
+            isInitPerformed = true;
         }
     }
 
+    public boolean isRecognized(FSFile fsFile) {
+        init();
+        setSource(fsFile);
+        return super.isRecognized();
+    }
     @Override
     protected void preProcess() {
         super.preProcess();
@@ -44,8 +54,8 @@ public class TestRecObject extends RecObject {
 //        adaBoost();
 //        transformSobel();
 //        transformLaplacian();
-//        transformCanny();
-        transformHoughLines();
+        transformCanny();
+//        transformHoughLines();
         isObjectRecognized = true;
     }
 

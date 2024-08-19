@@ -7,7 +7,6 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 
@@ -47,11 +46,6 @@ public class FSFile extends FSDirectory {
                     if (!fsImageFile.run()) {
                         LOG.debug("Can not process file " + this.getPath());
                     }
-//                    if (isToDelete) {
-//                        LOG.debug("Delete {}", this);
-//                        if (!this.delete())
-//                            throw new IllegalStateException("Can not delete " + this.getPath());
-//                    }
                     break;
                 case "ini":
                     FSPropertiesFile fsPropertiesFile = new FSPropertiesFile(this.getPath());
@@ -61,8 +55,6 @@ public class FSFile extends FSDirectory {
                     break;
             }
         }
-        deleteFSObject();
-
         return true;
     }
 
