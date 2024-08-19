@@ -141,6 +141,7 @@ public class RecObject {
         if (mat.dataAddr() != 0) {
             isObjectRecognized = true;
         } else {
+            isObjectRecognized = false;
             LOG.error("Can not open file {}", source.getPath());
         }
     }

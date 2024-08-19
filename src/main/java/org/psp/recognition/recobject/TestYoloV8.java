@@ -156,6 +156,8 @@ public class TestYoloV8 extends RecObject {
                     LOG.error(e.getMessage());
                     LOG.error(Arrays.toString(e.getStackTrace()));
                 }
+            } else {
+                LOG.error("Score threshold is less than expected for {}", source.getPath());
             }
             blob.release();
             predict.release();
