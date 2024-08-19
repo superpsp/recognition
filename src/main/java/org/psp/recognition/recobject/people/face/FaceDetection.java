@@ -9,12 +9,13 @@ import org.psp.recognition.fs.FSFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.psp.recognition.recobject.RecObject;
-import java.io.File;
 import java.util.ArrayList;
 
 public class FaceDetection extends RecObject {
     final static Logger LOG = LoggerFactory.getLogger(FaceDetection.class.getName());
     private static FaceDetection INSTANCE;
+    private static boolean isInitPerformed = false;
+    private static boolean isOn;
     private final ArrayList<String> faceResourcePatterns = new ArrayList<>();
 
     // From FILE source to SCREEN
@@ -24,33 +25,31 @@ public class FaceDetection extends RecObject {
         if (INSTANCE == null) {
             INSTANCE = new FaceDetection();
             LOG.debug("A new FaceDetection instance was created");
+
+            isOn = AppProperties.getInstance().getProperties().get("detection").get("FaceDetection").equals("on");
         }
         return INSTANCE;
     }
 
-    public void init() {
-        if (AppProperties.getInstance().getProperties().get("detection").get("FaceDetection").equals("on")) {
-            isOn = true;
+    public boolean isOn() {
+        return isOn;
+    }
 
+    public void init() {
+        if (!isInitPerformed) {
             if (faceResourcePatterns.isEmpty()) {
                 setFaceResources();
 
-                LOG.debug("destinationType = {}", AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destinationType"));
-                setDestinationType(AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destinationType"));
-
-                LOG.debug("destination = {}", AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destination"));
-                if (AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destinationType").equals("file")) {
-                    FSFile fsFile = new FSFile(
-                        AppProperties.getInstance().getProperties().get("directory").get("work")
-                        + File.separator + AppProperties.getInstance().getProperties().get("destination").get("FaceDetection.destination")
-                    );
-                    setDestination(fsFile);
-                }
+                super.init("FaceDetection");
             }
-        } else {
-            LOG.info("FaceDetection is switched off");
-            return;
+            isInitPerformed = true;
         }
+    }
+
+    public boolean isRecognized(FSFile fsFile) {
+        init();
+        setSource(fsFile);
+        return super.isRecognized();
     }
 
     @Override
@@ -89,31 +88,36 @@ public class FaceDetection extends RecObject {
     @Override
     protected void preProcessFile() {
         super.preProcessFile();
-        for (FSFile resource : resourceFiles) {
-            LOG.debug("resource = {}", resource);
 
-            Mat grayMat = new Mat();
-            Imgproc.cvtColor(mat, grayMat, Imgproc.COLOR_BGR2GRAY);
+        if (isObjectRecognized) {
+            isObjectRecognized = false;
 
-            OpencvCascadeClassifier opencvCascadeClassifier = new OpencvCascadeClassifier(resource.getAbsolutePath());
-            LOG.debug("OpencvCascadeClassifier created");
+            for (FSFile resource : resourceFiles) {
+                LOG.debug("resource = {}", resource);
+
+                Mat grayMat = new Mat();
+                Imgproc.cvtColor(mat, grayMat, Imgproc.COLOR_BGR2GRAY);
+
+                OpencvCascadeClassifier opencvCascadeClassifier = new OpencvCascadeClassifier(resource.getAbsolutePath());
+                LOG.debug("OpencvCascadeClassifier created");
 //            opencvCascadeClassifier.detectMultiScale(grayMat, matOfRect);
-            opencvCascadeClassifier.detectMultiScale(grayMat, matOfRect, 1.15, 5);
-            LOG.debug("Detection completed");
+                opencvCascadeClassifier.detectMultiScale(grayMat, matOfRect, 1.15, 5);
+                LOG.debug("Detection completed");
 
-            grayMat.release();
-            try {
-                opencvCascadeClassifier.finalize();
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-            LOG.info("Recognized {} objects", matOfRect.toArray().length);
-            if (matOfRect.toArray().length > 0)
-                LOG.info("Used resource: {}", resource);
+                grayMat.release();
+                try {
+                    opencvCascadeClassifier.finalize();
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+                LOG.info("Recognized {} objects", matOfRect.toArray().length);
+                if (matOfRect.toArray().length > 0)
+                    LOG.info("Used resource: {}", resource);
 
-            if (matOfRect != null && matOfRect.toArray().length > 0) {
-                isObjectRecognized = true;
-                break;
+                if (matOfRect != null && matOfRect.toArray().length != 0) {
+                    isObjectRecognized = true;
+                    break;
+                }
             }
         }
     }
