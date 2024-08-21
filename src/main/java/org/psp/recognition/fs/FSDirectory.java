@@ -9,7 +9,8 @@ import java.util.ArrayList;
 public class FSDirectory extends AbstractFSObject {
     private final static Logger LOG = LoggerFactory.getLogger(FSDirectory.class.getName());
     private ArrayList<String> namePatterns;
-    private boolean withSubdirectories = false; // with subdirectories
+    private boolean withSubdirectories = false;
+    private ArrayList<String> directoriesToSkip = new ArrayList<>();
 
     public FSDirectory(String pathname, ArrayList<String> namePatterns, boolean withSubdirectories, boolean isToDelete) {
         super(pathname);
@@ -18,10 +19,16 @@ public class FSDirectory extends AbstractFSObject {
         this.isToDelete = isToDelete;
     }
 
+    private void setDirectoriesToSkip() {
+        directoriesToSkip.add(AppProperties.getInstance().getProperties().get("directory").get("resources"));
+        directoriesToSkip.add(AppProperties.getInstance().getProperties().get("directory").get("processed"));
+        directoriesToSkip.addAll(AppProperties.getInstance().getProperties().get("destination").values());
+    }
+
     public boolean iterate() {
         FSFileNameFilter fsFileNameFilter = new FSFileNameFilter(namePatterns);
         File[] fileList = this.listFiles(fsFileNameFilter);
-        if (fileList != null) {
+        if (!directoriesToSkip.contains(this.getName()) && fileList != null) {
             for (File fsItem : fileList) {
                 LOG.debug("fsItem = {}", fsItem);
 

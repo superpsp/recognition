@@ -25,6 +25,7 @@ public class TestYoloV8 extends RecObject {
     private final String YOLO_MODEL = "yolov8m.onnx.yolo";
     private ArrayList<String> classNames;
     private ArrayList<String> excludedClassNames;
+    private ArrayList<String> recognisedObjects;
     private Net net;
     private DetectionModel detectionModel;
     private MatOfInt classIds;
@@ -54,7 +55,7 @@ public class TestYoloV8 extends RecObject {
             if (yoloResourcePatterns.isEmpty()) {
                 setYoloResources();
 
-                super.init("TestYoloV8");
+                super.init(getClass().getSimpleName());
             }
             classNames = getResource(YOLO_CLASS_NAMES).getLines();
             excludedClassNames = getResource(YOLO_CLASS_NAMES_EXCLUDE).getLines();
@@ -63,6 +64,8 @@ public class TestYoloV8 extends RecObject {
 
             classIds = new MatOfInt();
             scores = new MatOfFloat();
+
+            recognisedObjects = new ArrayList<>();
 
             isInitPerformed = true;
             LOG.debug("End init");
@@ -149,6 +152,8 @@ public class TestYoloV8 extends RecObject {
                             String text = String.format("%s: %.2f", className, scoref[i]);
                             Imgproc.putText(mat, text, rect2ds[i].tl()
                                     , Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0));
+
+                            recognisedObjects.add(source.getPath() + ":" + className + ":" + scoref[i]);
                             objectNumber++;
                         }
                     }
@@ -191,5 +196,9 @@ public class TestYoloV8 extends RecObject {
     @Override
     public void addResource(FSFile fsFile) {
         super.addResource(fsFile);
+    }
+
+    public ArrayList<String> getRecognisedObjects() {
+        return recognisedObjects;
     }
 }
