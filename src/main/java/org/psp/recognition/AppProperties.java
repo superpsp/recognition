@@ -35,7 +35,7 @@ public class AppProperties {
 
     public void setProperties(Map<String, Map<String, String>> properties) {
         this.properties = properties;
-        setDestinations();
+//        setDestinations();
     }
 
     public Map<String, Map<String, String>> getProperties() {
@@ -46,9 +46,9 @@ public class AppProperties {
         return destinations;
     }
 
-    public void setDestinations() {
-        this.destinations.add(properties.get("destination").get("FaceDetection.destination"));
-        this.destinations.add(properties.get("destination").get("TestRecObject.destination"));
-        this.destinations.add(properties.get("destination").get("TestYolo.destination"));
-    }
+//    public void setDestinations() {
+//        this.destinations.add(properties.get("destination").get("FaceDetection.destination"));
+//        this.destinations.add(properties.get("destination").get("TestRecObject.destination"));
+//        this.destinations.add(properties.get("destination").get("TestYolo.destination"));
+//    }
 }

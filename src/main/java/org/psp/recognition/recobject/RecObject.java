@@ -38,10 +38,22 @@ public class RecObject {
             destination.deleteFSObject();
         }
         LOG.debug("Creating destination directory {}", destination);
-        destination.mkdirs();
+        if (!destination.mkdirs())
+            throw new IllegalStateException("Can not create directory" + destination.getPath());
+
+        FSFile fsFile = new FSFile(
+                AppProperties.getInstance().getProperties().get("directory").get("work")
+                        + File.separator + AppProperties.getInstance().getProperties().get("directory").get("processed")
+        );
+        if (!fsFile.exists()) {
+            LOG.debug("Creating processed directory");
+            if (!fsFile.mkdirs())
+                throw new IllegalStateException("Can not create directory" + fsFile.getPath());
+        }
     }
 
     protected void init(String objectName) {
+        LOG.debug("objectName = {}", objectName);
         LOG.debug("destinationType = {}", AppProperties.getInstance().getProperties().get("destination").get(objectName + ".destinationType"));
         setDestinationType(AppProperties.getInstance().getProperties().get("destination").get(objectName + ".destinationType"));
 
