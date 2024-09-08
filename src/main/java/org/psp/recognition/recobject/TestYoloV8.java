@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class TestYoloV8 extends RecObject {
     final static Logger LOG = LoggerFactory.getLogger(TestYoloV8.class.getName());
@@ -22,11 +21,16 @@ public class TestYoloV8 extends RecObject {
     private final ArrayList<String> yoloResourcePatterns = new ArrayList<>();
     private final String YOLO_CLASS_NAMES = "coco.names.yolo";
     private final String YOLO_CLASS_NAMES_EXCLUDE = "yolo_exclude.yolo";
-    private final String YOLO_MODEL = "yolov8m.onnx.yolo";
+    private final String YOLO_MODEL = "yolov9m.onnx.yolo";
     private ArrayList<String> classNames;
     private ArrayList<String> excludedClassNames;
     private ArrayList<String> recognisedObjects;
     private Net net;
+    private Mat blob;
+    private Mat predict;
+    private Mat mask;
+    private Mat score;
+    private MatOfRect2d boxes;
     private DetectionModel detectionModel;
     private MatOfInt classIds;
     private MatOfFloat scores;
@@ -99,10 +103,10 @@ public class TestYoloV8 extends RecObject {
         if (isObjectRecognized) {
             isObjectRecognized = false;
 
-            Mat blob = Dnn.blobFromImage(mat, 1/255.0, new Size(640, 640));
+            blob = Dnn.blobFromImage(mat, 1/255.0, new Size(640, 640));
             net.setInput(blob);
-            Mat predict = net.forward();
-            Mat mask = predict.reshape(0, 1).reshape(0, predict.size(1));
+            predict = net.forward();
+            mask = predict.reshape(0, 1).reshape(0, predict.size(1));
             LOG.debug("blob = {}, predict = {}, mask.cols() = {}", blob, predict, mask.cols());
 
             double width = mat.cols() / 640.0;
@@ -123,9 +127,8 @@ public class TestYoloV8 extends RecObject {
                 rect2ds[i] = new Rect2d((x[0] - w[0] / 2) * width, (y[0] - h[0] / 2) * heigh
                         , w[0] * width, h[0] * heigh);
 
-                Mat score = mask.col(i).submat(4, predict.size(1) - 1, 0, 1);
+                score = mask.col(i).submat(4, predict.size(1) - 1, 0, 1);
                 Core.MinMaxLocResult minMaxLocResult = Core.minMaxLoc(score);
-                score.release();
 
                 scoref[i] = (float) minMaxLocResult.maxVal;
                 classIds[i] = (int) minMaxLocResult.maxLoc.y;
@@ -162,11 +165,12 @@ public class TestYoloV8 extends RecObject {
                     LOG.error(Arrays.toString(e.getStackTrace()));
                 }
             } else {
-                LOG.error("Score threshold is less than expected for {}", source.getPath());
+                LOG.debug("Score threshold is less than expected for {}", source.getPath());
             }
-            blob.release();
-            predict.release();
-            mask.release();
+//            blob.release();
+//            predict.release();
+//            mask.release();
+//            score.release();
             boxes.release();
             scores.release();
             indices.release();
