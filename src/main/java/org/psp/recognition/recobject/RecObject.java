@@ -34,13 +34,11 @@ public class RecObject {
 
     public void setDestination(FSFile destination) {
         this.destination = destination;
-        if (destination.exists()) {
-            destination.deleteFSObject();
+        if (!destination.exists()) {
+            LOG.debug("Creating destination directory {}", destination);
+            if (!destination.mkdirs())
+                throw new IllegalStateException("Can not create directory" + destination.getPath());
         }
-        LOG.debug("Creating destination directory {}", destination);
-        if (!destination.mkdirs())
-            throw new IllegalStateException("Can not create directory" + destination.getPath());
-
         FSFile fsFile = new FSFile(
                 AppProperties.getInstance().getProperties().get("directory").get("work")
                         + File.separator + AppProperties.getInstance().getProperties().get("directory").get("processed")
