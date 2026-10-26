@@ -91,7 +91,7 @@
 				<version>${maven-antrun-plugin.version}</version>
 				<executions>
 					<execution>
-						<phase>install</phase>
+						<phase>package</phase>
 						<configuration>
 							<target>
 								<copy file="target/${project.artifactId}-${project.version}.jar" tofile="${project.artifactId}.jar"/>
