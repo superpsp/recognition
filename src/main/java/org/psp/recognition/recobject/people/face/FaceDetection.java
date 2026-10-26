@@ -127,7 +127,7 @@ public class FaceDetection extends RecObject {
         if (isObjectRecognized) {
             LOG.debug("matOfRect.toArray().length = {}", matOfRect.toArray().length);
             for (Rect rect : matOfRect.toArray()) {
-                Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
+                Imgproc.rectangle(mat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0), 10);
             }
         }
         super.postProcessFile();

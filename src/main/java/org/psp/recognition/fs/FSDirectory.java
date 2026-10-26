@@ -19,16 +19,11 @@ public class FSDirectory extends AbstractFSObject {
         this.isToDelete = isToDelete;
     }
 
-    private void setDirectoriesToSkip() {
-        directoriesToSkip.add(AppProperties.getInstance().getProperties().get("directory").get("resources"));
-        directoriesToSkip.add(AppProperties.getInstance().getProperties().get("directory").get("processed"));
-        directoriesToSkip.addAll(AppProperties.getInstance().getProperties().get("destination").values());
-    }
-
     public boolean iterate() {
         FSFileNameFilter fsFileNameFilter = new FSFileNameFilter(namePatterns);
+        LOG.debug("this.getName() = {}", this.getName());
         File[] fileList = this.listFiles(fsFileNameFilter);
-        if (!directoriesToSkip.contains(this.getName()) && fileList != null) {
+        if (fileList != null) {
             for (File fsItem : fileList) {
                 LOG.debug("fsItem = {}", fsItem);
 

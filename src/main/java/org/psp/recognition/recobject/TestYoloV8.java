@@ -151,10 +151,10 @@ public class TestYoloV8 extends RecObject {
                         className = classNames.get(classIds[i]);
                         if (!excludedClassNames.contains(className)) {
                             Imgproc.rectangle(mat, new Rect(rect2ds[i].tl(), rect2ds[i].size())
-                                    , new Scalar(0, 255, 0), 1);
+                                    , new Scalar(0, 255, 0), 10);
                             String text = String.format("%s: %.2f", className, scoref[i]);
                             Imgproc.putText(mat, text, rect2ds[i].tl()
-                                    , Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0));
+                                    , Imgproc.FONT_HERSHEY_SIMPLEX, 5, new Scalar(0, 255, 0), 10);
 
                             recognisedObjects.add(source.getPath() + ":" + className + ":" + scoref[i]);
                             objectNumber++;

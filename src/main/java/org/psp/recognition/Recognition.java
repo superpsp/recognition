@@ -5,8 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.opencv.core.Core;
 import org.psp.recognition.fs.FSDirectory;
 
+import java.util.ArrayList;
+
 public class Recognition {
     private final static Logger LOG = LoggerFactory.getLogger(Recognition.class.getName());
+    private final static String JPEG_PATTERN = "jpeg";
+    private final static String JPG_PATTERN = "jpg";
 
     public static void main(String[] args) {
         AppProperties.getInstance().init();
@@ -15,7 +19,10 @@ public class Recognition {
 
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-        FSDirectory workDirectory = new FSDirectory(AppProperties.getInstance().getProperties().get("directory").get("work"), null, false, false);
+        ArrayList<String> namePatterns = new ArrayList<>();
+        namePatterns.add(JPEG_PATTERN);
+        namePatterns.add(JPG_PATTERN);
+        FSDirectory workDirectory = new FSDirectory(AppProperties.getInstance().getProperties().get("directory").get("work"), namePatterns, false, false);
         LOG.debug("workDirectory = {}", workDirectory);
         workDirectory.iterate();
 
